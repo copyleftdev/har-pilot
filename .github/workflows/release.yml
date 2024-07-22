@@ -6,13 +6,8 @@ on:
       - 'v*.*.*'  # Triggers the workflow on version tags like v1.0.0
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        target: [x86_64-unknown-linux-gnu, x86_64-apple-darwin, x86_64-pc-windows-msvc]
-
+  build-linux:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,27 +19,53 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Install Cross
-        run: cargo install cross
-
-      - name: Build with Cross
-        run: cross build --release --target ${{ matrix.target }}
+      - name: Build
+        run: cargo build --release
 
       - name: Archive the build
         run: |
           mkdir -p artifacts
-          cp target/${{ matrix.target }}/release/har-pilot artifacts/
+          cp target/release/har-pilot artifacts/
           cd artifacts
-          zip -r har-pilot-${{ matrix.os }}-${GITHUB_REF_NAME}.zip ./*
+          zip -r har-pilot-linux-${GITHUB_REF_NAME}.zip ./*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: har-pilot-${{ matrix.os }}-${GITHUB_REF_NAME}
-          path: artifacts/har-pilot-${{ matrix.os }}-${GITHUB_REF_NAME}.zip
+          name: har-pilot-linux-${GITHUB_REF_NAME}
+          path: artifacts/har-pilot-linux-${GITHUB_REF_NAME}.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Archive the build
+        run: |
+          mkdir -p artifacts
+          cp target/release/har-pilot artifacts/
+          cd artifacts
+          zip -r har-pilot-macos-${GITHUB_REF_NAME}.zip ./*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: har-pilot-macos-${GITHUB_REF_NAME}
+          path: artifacts/har-pilot-macos-${GITHUB_REF_NAME}.zip
 
   release:
-    needs: build
+    needs: [build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Download artifacts
