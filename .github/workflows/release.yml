@@ -11,6 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        target: [x86_64-unknown-linux-gnu, x86_64-apple-darwin, x86_64-pc-windows-msvc]
 
     steps:
       - name: Checkout repository
@@ -19,24 +20,28 @@ jobs:
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
-          target: ${{ matrix.os == 'windows-latest' && 'x86_64-pc-windows-gnu' || matrix.os == 'macos-latest' && 'x86_64-apple-darwin' || 'x86_64-unknown-linux-gnu' }}
+          override: true
 
-      - name: Build
-        run: cargo build --release
+      - name: Install Cross
+        run: cargo install cross
+
+      - name: Build with Cross
+        run: cross build --release --target ${{ matrix.target }}
 
       - name: Archive the build
         run: |
           mkdir -p artifacts
-          cp target/release/${{ github.repository }} artifacts/
+          cp target/${{ matrix.target }}/release/har-pilot artifacts/
           cd artifacts
-          zip -r ${GITHUB_REF_NAME}-${{ matrix.os }}.zip ./*
+          zip -r har-pilot-${{ matrix.os }}-${GITHUB_REF_NAME}.zip ./*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ github.repository }}-${{ matrix.os }}-${GITHUB_REF_NAME}
-          path: artifacts/${GITHUB_REF_NAME}-${{ matrix.os }}.zip
+          name: har-pilot-${{ matrix.os }}-${GITHUB_REF_NAME}
+          path: artifacts/har-pilot-${{ matrix.os }}-${GITHUB_REF_NAME}.zip
 
   release:
     needs: build
@@ -65,5 +70,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/
-          asset_name: ${{ matrix.os }}-${GITHUB_REF_NAME}.zip
+          asset_name: har-pilot-${{ matrix.os }}-${GITHUB_REF_NAME}.zip
           asset_content_type: application/zip
