@@ -2,8 +2,7 @@
 
 ![har-pilot Logo](./logo.png)
 
-**har-pilot** is a powerful tool designed to run HAR (HTTP Archive) files and perform load testing using these files. With a friendly and detailed corgi mascot, `har-pilot` brings a fun twist to your load testing needs.
-
+**har-pilot** is a powerful tool designed to run HAR (HTTP Archive) files and perform load testing using these files.
 ## Features
 
 - **Run HAR Files:** Execute HTTP requests captured in HAR files.
