@@ -16,7 +16,7 @@
 To get started with `har-pilot`, clone the repository and install the dependencies:
 
 ```sh
-git clone https://github.com/yourusername/har-pilot.git
+git clone https://github.com/copyleftdev/har-pilot.git
 cd har-pilot
 cargo build
 ```
